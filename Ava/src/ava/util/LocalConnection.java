@@ -22,7 +22,7 @@ public abstract class LocalConnection {
 	private Socket socket;
 
 	public abstract void buildRequest();
-	
+
 	public abstract void send();
 
 	public abstract void handleResponse();
