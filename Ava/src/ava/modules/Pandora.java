@@ -1,16 +1,15 @@
 package ava.modules;
 
 import ava.util.AvaModule;
-import ava.util.WebConnection;
 
-public class Weather implements AvaModule {
+public class Pandora implements AvaModule {
 
-	/* The keyword to be mapped to the module */
-	private String keyword = "Weather";
+	private String keyword = "Play";
 
 	@Override
 	public void execute(String commandString) {
 		// TODO Auto-generated method stub
+
 	}
 
 	@Override
@@ -21,19 +20,19 @@ public class Weather implements AvaModule {
 	@Override
 	public void buildRequest() {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void send() {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void handleResponse() {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 }

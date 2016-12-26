@@ -8,7 +8,7 @@ package ava.util;
 public interface AvaModule {
 
 	/**
-	 * Method for executing a command
+	 * Determines the action to take from the command string passed in
 	 * 
 	 * @param commandString
 	 *            the full command string from the STT engine
@@ -21,5 +21,11 @@ public interface AvaModule {
 	 * @return keyword the word to be mapped
 	 */
 	public String getKeyword();
+
+	public void buildRequest();
+
+	public void send();
+
+	public void handleResponse();
 
 }

@@ -3,7 +3,7 @@ package ava.modules;
 import ava.util.AvaModule;
 import ava.util.LocalConnection;
 
-public class Lights extends LocalConnection implements AvaModule {
+public class Lights implements AvaModule {
 
 	/* The keyword to be mapped to the module */
 	private String keyword = "Lights";
@@ -15,7 +15,7 @@ public class Lights extends LocalConnection implements AvaModule {
 	public void execute(String commandString) {
 		// command string is not used for this because I only care about turning
 		// on/off the lights
-
+		LocalConnection conn = new LocalConnection("192.168.0.19", 9999);
 	}
 
 	@Override
@@ -34,6 +34,24 @@ public class Lights extends LocalConnection implements AvaModule {
 		}
 
 		return bArr;
+	}
+
+	@Override
+	public void buildRequest() {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void send() {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void handleResponse() {
+		// TODO Auto-generated method stub
+
 	}
 
 }

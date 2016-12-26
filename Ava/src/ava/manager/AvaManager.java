@@ -23,6 +23,7 @@ public class AvaManager {
 		ArrayList<String> modules = new ArrayList<String>();
 		// manually add them here until I can get them by all in the folder
 		modules.add("Weather");
+		modules.add("Lights");
 		buildModuleMap(modules);
 		listen();
 	}
@@ -38,7 +39,7 @@ public class AvaManager {
 			Class<?> c;
 			try {
 				c = Class.forName("ava.modules." + moduleName);
-				Constructor<?> cons = c.getConstructor(String.class);
+				Constructor<?> cons = c.getConstructor();
 				// Cast as interface
 				AvaModule module = (AvaModule) cons.newInstance();
 				// Add into map by keyword

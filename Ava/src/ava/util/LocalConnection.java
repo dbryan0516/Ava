@@ -15,17 +15,52 @@ import org.json.simple.JSONObject;
  * @author dbryan (dylanmbryan@gmail.com)
  *
  */
-public abstract class LocalConnection {
+public class LocalConnection {
 
 	private BufferedReader responseReader;
 	private PrintWriter requestWriter;
 	private Socket socket;
+	private String target;
+	private int port;
 
-	public abstract void buildRequest();
+	public LocalConnection(String target, int port) {
+		if (target == null || target.isEmpty() || port == 0) {
+			throw new IllegalArgumentException("Target or Port empty");
+		} else {
 
-	public abstract void send();
+			this.target = target;
+			this.port = port;
+			buildConnection(target, port);
+		}
+	}
 
-	public abstract void handleResponse();
+	public String getTarget() {
+		return target;
+	}
+
+	public void setTarget(String target) {
+		this.target = target;
+	}
+
+	public int getPort() {
+		return port;
+	}
+
+	public void setPort(int port) {
+		this.port = port;
+	}
+
+	public BufferedReader getResponseReader() {
+		return responseReader;
+	}
+
+	public PrintWriter getRequestWriter() {
+		return requestWriter;
+	}
+
+	public Socket getSocket() {
+		return socket;
+	}
 
 	/**
 	 * Opens a connection with the target device at the given IP through the
@@ -36,7 +71,7 @@ public abstract class LocalConnection {
 	 * @param port
 	 *            the port to connect on
 	 */
-	public void buildConnection(String target, int port) {
+	public boolean buildConnection(String target, int port) {
 		// String username, String pw
 		// Add functionality for log in credentials
 
@@ -46,21 +81,51 @@ public abstract class LocalConnection {
 		} catch (UnknownHostException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-			return;
+			return false;
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-			return;
+			return false;
 		}
 
 		try {
-			PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
-			BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+			requestWriter = new PrintWriter(socket.getOutputStream(), true);
+			responseReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 		} catch (IOException e) {
 			System.out.println("IO Error! Unable to establish input/output stream.");
 			e.printStackTrace();
-			return;
+			return false;
 		}
+		return true;
+	}
+
+	/**
+	 * Calls the close function and tries to build connection again.
+	 * 
+	 * @return true if connection was created, false otherwise
+	 */
+	public boolean reconnect() {
+		close();
+		return buildConnection(target, port);
+	}
+
+	/**
+	 * Closes the connection
+	 */
+	public void close() {
+		try {
+			responseReader.close();
+			requestWriter.close();
+			socket.close();
+
+			responseReader = null;
+			requestWriter = null;
+			socket = null;
+		} catch (IOException e) {
+			// some error message
+
+		}
+
 	}
 
 }

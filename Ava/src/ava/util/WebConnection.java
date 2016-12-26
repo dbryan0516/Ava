@@ -2,14 +2,11 @@ package ava.util;
 
 /**
  * Abstract class for connecting to services on the internet
+ * 
  * @author dbryan (dylanmbryan@gmail.com)
  *
  */
-public abstract class WebConnection {
-
-	public abstract void buildRequest();
-
-	public abstract void handleResponse();
+public class WebConnection {
 
 	/**
 	 * Opens a connection with the target device at the given IP through the
@@ -24,5 +21,4 @@ public abstract class WebConnection {
 
 	}
 
-	
 }
