@@ -7,8 +7,6 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
-import org.json.simple.JSONObject;
-
 /**
  * Abstract class for connecting to devices on your local network
  * 

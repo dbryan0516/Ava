@@ -10,12 +10,16 @@ public class Lights implements AvaModule {
 
 	/* The IP for the device */
 	private String target;
+	private LocalConnection conn;
+	private String request;
 
 	@Override
 	public void execute(String commandString) {
 		// command string is not used for this because I only care about turning
 		// on/off the lights
-		LocalConnection conn = new LocalConnection("192.168.0.19", 9999);
+		conn = new LocalConnection("192.168.0.19", 9999);
+		buildRequest();
+		send();
 	}
 
 	@Override
@@ -38,13 +42,13 @@ public class Lights implements AvaModule {
 
 	@Override
 	public void buildRequest() {
-		// TODO Auto-generated method stub
+		request = "{'system':{'get_sysinfo':{}}}";
+		// TODO: add state and dynamically build based on state response
 
 	}
 
 	@Override
 	public void send() {
-		// TODO Auto-generated method stub
 
 	}
 
