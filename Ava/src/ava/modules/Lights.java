@@ -1,5 +1,15 @@
 package ava.modules;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
+
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
+
 import ava.util.AvaModule;
 import ava.util.LocalConnection;
 
@@ -7,6 +17,7 @@ public class Lights implements AvaModule {
 
 	/* The keyword to be mapped to the module */
 	private String keyword = "Lights";
+	public static final int PORT = 9999;
 
 	/* The IP for the device */
 	private String target;
@@ -17,9 +28,10 @@ public class Lights implements AvaModule {
 	public void execute(String commandString) {
 		// command string is not used for this because I only care about turning
 		// on/off the lights
-		conn = new LocalConnection("192.168.0.19", 9999);
-		buildRequest();
+		buildRequest("status");
+		conn = new LocalConnection("192.168.0.19", PORT);
 		send();
+		conn.close();
 	}
 
 	@Override
@@ -40,21 +52,73 @@ public class Lights implements AvaModule {
 		return bArr;
 	}
 
+	private static byte[] decrypt(byte[] bArr) {
+		// TODO: Convert code from python
+		// if (bArr != null && bArr.length > 0) {
+		// int key = -85;
+		// for (int i = 0; i < bArr.length; i++) {
+		// byte b = (byte) (key ^ bArr[i]);
+		// key = bArr[i];
+		// bArr[i] = b;
+		// }
+		// }
+
+		return bArr;
+	}
+
 	@Override
-	public void buildRequest() {
-		request = "{'system':{'get_sysinfo':{}}}";
+	public void buildRequest(String string) {
+		if (string.equals("status")) {
+			request = "{'system':{'get_sysinfo':{}}}";
+		} else if (string.equals("on")) {
+			request = "{'system':{'set_relay_state':{'state':1}}}";
+		} else if (string.equals("off")) {
+			request = "{'system':{'set_relay_state':{'state':0}}}";
+		}
 		// TODO: add state and dynamically build based on state response
 
 	}
 
 	@Override
 	public void send() {
+		if (conn.isClosed()) {
+			conn.reconnect();
+		}
 
+		PrintWriter requestWriter = conn.getRequestWriter();
+		requestWriter.print(encrypt(request.getBytes()));
 	}
 
 	@Override
 	public void handleResponse() {
-		// TODO Auto-generated method stub
+
+		JSONParser parser = new JSONParser();
+
+		String response = null;
+		try {
+			response = conn.getResponseReader().readLine();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		try {
+			response = new String(decrypt(response.getBytes()), "UTF-8");
+		} catch (UnsupportedEncodingException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+
+		Object obj = null;
+		try {
+			obj = parser.parse(response);
+		} catch (ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		JSONObject jsonObject = (JSONObject) obj;
+
+		// Breakpoint to determine structure
 
 	}
 

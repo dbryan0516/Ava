@@ -22,7 +22,7 @@ public interface AvaModule {
 	 */
 	public String getKeyword();
 
-	public void buildRequest();
+	public void buildRequest(String string);
 
 	public void send();
 

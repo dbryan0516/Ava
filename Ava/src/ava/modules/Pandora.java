@@ -18,7 +18,7 @@ public class Pandora implements AvaModule {
 	}
 
 	@Override
-	public void buildRequest() {
+	public void buildRequest(String string) {
 		// TODO Auto-generated method stub
 
 	}

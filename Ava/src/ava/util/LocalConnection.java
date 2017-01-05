@@ -61,6 +61,15 @@ public class LocalConnection {
 	}
 
 	/**
+	 * Returns if the socket is open or closed
+	 * 
+	 * @return true if the connection is closed
+	 */
+	public boolean isClosed() {
+		return socket.isClosed();
+	}
+
+	/**
 	 * Opens a connection with the target device at the given IP through the
 	 * given port
 	 * 

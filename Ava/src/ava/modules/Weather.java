@@ -19,21 +19,21 @@ public class Weather implements AvaModule {
 	}
 
 	@Override
-	public void buildRequest() {
+	public void buildRequest(String string) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void send() {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void handleResponse() {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 }
