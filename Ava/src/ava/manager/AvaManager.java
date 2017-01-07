@@ -22,7 +22,7 @@ public class AvaManager {
 	public AvaManager() {
 		ArrayList<String> modules = new ArrayList<String>();
 		// manually add them here until I can get them by all in the folder
-		modules.add("Weather");
+//		modules.add("Weather");
 		modules.add("Lights");
 		buildModuleMap(modules);
 		listen();
