@@ -29,7 +29,7 @@ public class Lights implements AvaModule {
 		// command string is not used for this because I only care about turning
 		// on/off the lights
 		buildRequest("on");
-		conn = new LocalConnection("192.168.0.3", PORT);
+		conn = new LocalConnection("192.168.0.5", PORT);
 		send();
 		conn.close();
 	}
