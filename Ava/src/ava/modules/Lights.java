@@ -24,6 +24,10 @@ public class Lights implements AvaModule {
 	private LocalConnection conn;
 	private String request;
 
+	public Lights(String target) {
+		this.target = target;
+	}
+
 	@Override
 	public void execute(String commandString) {
 		// command string is not used for this because I only care about turning
@@ -41,7 +45,7 @@ public class Lights implements AvaModule {
 
 	private static byte[] encrypt(byte[] bArr) {
 		if (bArr != null && bArr.length > 0) {
-			int key = -85;
+			int key = 171;
 			for (int i = 0; i < bArr.length; i++) {
 				byte b = (byte) (key ^ bArr[i]);
 				key = bArr[i];
@@ -72,6 +76,13 @@ public class Lights implements AvaModule {
 			request = "{'system':{'get_sysinfo':{}}}";
 		} else if (string.equals("on")) {
 			request = "{'system':{'set_relay_state':{'state':1}}}";
+			JSONObject j = new JSONObject();
+			j.put("state", 0);
+			JSONObject k = new JSONObject();
+			k.put("set_relay_state", j);
+			JSONObject l = new JSONObject();
+			l.put("system", k);
+			request = l.toJSONString();
 		} else if (string.equals("off")) {
 			request = "{'system':{'set_relay_state':{'state':0}}}";
 		}
@@ -82,11 +93,13 @@ public class Lights implements AvaModule {
 	@Override
 	public void send() {
 		if (conn.isClosed()) {
+			System.out.println("reconnecting");
 			conn.reconnect();
 		}
 
 		PrintWriter requestWriter = conn.getRequestWriter();
 		requestWriter.print(encrypt(request.getBytes()));
+		System.out.println("command sent");
 	}
 
 	@Override

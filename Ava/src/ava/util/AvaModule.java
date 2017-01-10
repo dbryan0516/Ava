@@ -1,6 +1,7 @@
 package ava.util;
 
 /**
+ * Local connection modules should have a string constructor
  * 
  * @author dbryan (dylanmbryan@gmail.com)
  *
