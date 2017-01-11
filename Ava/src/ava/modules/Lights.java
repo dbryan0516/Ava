@@ -33,7 +33,7 @@ public class Lights implements AvaModule {
         // command string is not used for this because I only care about turning
         // on/off the lights
         buildRequest("on");
-        conn = new LocalConnection("192.168.0.5", PORT);
+        conn = new LocalConnection(target, PORT);
         send();
         conn.close();
     }
@@ -43,9 +43,13 @@ public class Lights implements AvaModule {
         return this.keyword;
     }
 
+    public String getRequest() {
+        return this.request;
+    }
+
     private static byte[] encrypt(byte[] bArr) {
         if (bArr != null && bArr.length > 0) {
-            int key = 171;
+            int key = 171; // originally -81
             for (int i = 0; i < bArr.length; i++) {
                 byte b = (byte) (key ^ bArr[i]);
                 key = bArr[i];
@@ -57,7 +61,7 @@ public class Lights implements AvaModule {
     }
 
     private static byte[] decrypt(byte[] bArr) {
-        // TODO: Convert code from python
+        // TODO: Make sure encrypt works and then Convert code from python
         // if (bArr != null && bArr.length > 0) {
         // int key = -85;
         // for (int i = 0; i < bArr.length; i++) {
@@ -75,7 +79,8 @@ public class Lights implements AvaModule {
         if (string.equals("status")) {
             request = "{'system':{'get_sysinfo':{}}}";
         } else if (string.equals("on")) {
-            request = "{'system':{'set_relay_state':{'state':1}}}";
+            // TODO: See if I can build request without json objects
+            // request = "{\"system\":{\"set_relay_state\":{\"state\":1}}}";
             JSONObject j = new JSONObject();
             j.put("state", 0);
             JSONObject k = new JSONObject();
@@ -99,6 +104,7 @@ public class Lights implements AvaModule {
 
         PrintWriter requestWriter = conn.getRequestWriter();
         requestWriter.print(encrypt(request.getBytes()));
+        requestWriter.flush();
         System.out.println("command sent");
     }
 
