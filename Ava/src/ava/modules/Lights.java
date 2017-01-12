@@ -1,9 +1,13 @@
 package ava.modules;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
+import java.nio.ByteBuffer;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -47,17 +51,53 @@ public class Lights implements AvaModule {
         return this.request;
     }
 
-    private static byte[] encrypt(byte[] bArr) {
-        if (bArr != null && bArr.length > 0) {
-            int key = 171; // originally -81
-            for (int i = 0; i < bArr.length; i++) {
-                byte b = (byte) (key ^ bArr[i]);
-                key = bArr[i];
-                bArr[i] = b;
-            }
+    // Python code to encrypt using static key.
+    // Python code works, Java does not
+
+    // def encrypt(string):
+    // key = 171
+    // result = "\0\0\0\0"
+    // for i in string:
+    // a = key ^ ord(i)
+    // key = a
+    // result += chr(a)
+    // return result
+
+    // private static byte[] encrypt(String request) {
+    // byte[] bArr = new byte[request.length()];
+    // // Byte key = (byte) 171;
+    // if (bArr != null && bArr.length > 0) {
+    // int key = -81; // originally -81
+    // for (int i = 0; i < bArr.length; i++) {
+    // byte b = (key ^ (int) bArr[i]);
+    // key = bArr[i];
+    // bArr[i] = b;
+    // }
+    // }
+    //
+    // int key = 171;
+    // String result = "\0\0\0\0";
+    //
+    // return bArr;
+    // }
+
+    private byte[] encrypt(String command) {
+
+        int[] buffer = new int[command.length()];
+        int key = 0xAB; // may change this to 171
+        for (int i = 0; i < command.length(); i++) {
+
+            buffer[i] = command.charAt(i) ^ key;
+            key = buffer[i];
         }
 
-        return bArr;
+        byte[] bufferHeader = ByteBuffer.allocate(4).putInt(command.length()).array();
+        ByteBuffer byteBuffer = ByteBuffer.allocate(bufferHeader.length + buffer.length).put(bufferHeader);
+        for (int in : buffer) {
+
+            byteBuffer.put((byte) in);
+        }
+        return byteBuffer.array();
     }
 
     private static byte[] decrypt(byte[] bArr) {
@@ -82,7 +122,7 @@ public class Lights implements AvaModule {
             // TODO: See if I can build request without json objects
             // request = "{\"system\":{\"set_relay_state\":{\"state\":1}}}";
             JSONObject j = new JSONObject();
-            j.put("state", 0);
+            j.put("state", 1);
             JSONObject k = new JSONObject();
             k.put("set_relay_state", j);
             JSONObject l = new JSONObject();
@@ -102,8 +142,19 @@ public class Lights implements AvaModule {
             conn.reconnect();
         }
 
+        // write binary to file to compare with python encryption binary
+        File f = new File("test.txt");
+        try {
+            FileOutputStream out = new FileOutputStream("test.txt");
+            out.write(encrypt(request));
+            out.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return;
+        }
+
         PrintWriter requestWriter = conn.getRequestWriter();
-        requestWriter.print(encrypt(request.getBytes()));
+        requestWriter.print(encrypt(request));
         requestWriter.flush();
         System.out.println("command sent");
     }
