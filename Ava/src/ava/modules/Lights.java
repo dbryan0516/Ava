@@ -91,6 +91,8 @@ public class Lights implements AvaModule {
             key = buffer[i];
         }
 
+        // problem lies in the 'header'. command should follow 4 null bytes.
+        // Currently only follows 3 and some random one
         byte[] bufferHeader = ByteBuffer.allocate(4).putInt(command.length()).array();
         ByteBuffer byteBuffer = ByteBuffer.allocate(bufferHeader.length + buffer.length).put(bufferHeader);
         for (int in : buffer) {
