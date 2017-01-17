@@ -1,10 +1,10 @@
 package ava.modules;
 
-import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.PrintStream;
+import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
@@ -36,9 +36,10 @@ public class Lights implements AvaModule {
     public void execute(String commandString) {
         // command string is not used for this because I only care about turning
         // on/off the lights
-        buildRequest("on");
+        buildRequest("status");
         conn = new LocalConnection(target, PORT);
         send();
+        handleResponse();
         conn.close();
     }
 
@@ -54,35 +55,9 @@ public class Lights implements AvaModule {
     // Python code to encrypt using static key.
     // Python code works, Java does not
 
-    // def encrypt(string):
-    // key = 171
-    // result = "\0\0\0\0"
-    // for i in string:
-    // a = key ^ ord(i)
-    // key = a
-    // result += chr(a)
-    // return result
-
-    // private static byte[] encrypt(String request) {
-    // byte[] bArr = new byte[request.length()];
-    // // Byte key = (byte) 171;
-    // if (bArr != null && bArr.length > 0) {
-    // int key = -81; // originally -81
-    // for (int i = 0; i < bArr.length; i++) {
-    // byte b = (key ^ (int) bArr[i]);
-    // key = bArr[i];
-    // bArr[i] = b;
-    // }
-    // }
-    //
-    // int key = 171;
-    // String result = "\0\0\0\0";
-    //
-    // return bArr;
-    // }
-
     private byte[] encrypt(String command) {
 
+        byte nullByte = (byte) '\0';
         int[] buffer = new int[command.length()];
         int key = 0xAB; // may change this to 171
         for (int i = 0; i < command.length(); i++) {
@@ -93,8 +68,15 @@ public class Lights implements AvaModule {
 
         // problem lies in the 'header'. command should follow 4 null bytes.
         // Currently only follows 3 and some random one
-        byte[] bufferHeader = ByteBuffer.allocate(4).putInt(command.length()).array();
-        ByteBuffer byteBuffer = ByteBuffer.allocate(bufferHeader.length + buffer.length).put(bufferHeader);
+        // byte[] bufferHeader =
+        // ByteBuffer.allocate(4).putInt(command.length()).array();
+        // ByteBuffer byteBuffer = ByteBuffer.allocate(bufferHeader.length +
+        // buffer.length).put(bufferHeader);
+        int headerLength = 4;
+        ByteBuffer byteBuffer = ByteBuffer.allocate(buffer.length + headerLength);
+        for (int i = 0; i < headerLength; i++) {
+            byteBuffer.put(nullByte);
+        }
         for (int in : buffer) {
 
             byteBuffer.put((byte) in);
@@ -102,7 +84,7 @@ public class Lights implements AvaModule {
         return byteBuffer.array();
     }
 
-    private static byte[] decrypt(byte[] bArr) {
+    private String decrypt(String response) {
         // TODO: Make sure encrypt works and then Convert code from python
         // if (bArr != null && bArr.length > 0) {
         // int key = -85;
@@ -112,26 +94,41 @@ public class Lights implements AvaModule {
         // bArr[i] = b;
         // }
         // }
+        File f = new File("Pre-decrypt.txt");
+        try {
+            PrintWriter out = new PrintWriter(f);
+            out.print(response);
+            out.flush();
+            out.close();
+        } catch (FileNotFoundException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
 
-        return bArr;
+        int in;
+        int key = 171;
+        int nextKey;
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < response.length(); i++) {
+            in = (int) response.charAt(i);
+            nextKey = in;
+            in = in ^ key;
+            key = nextKey;
+            sb.append((char) in);
+        }
+        // System.out.println(sb.toString());
+        return "{" + sb.toString().substring(5);
+
     }
 
     @Override
     public void buildRequest(String string) {
         if (string.equals("status")) {
-            request = "{'system':{'get_sysinfo':{}}}";
+            request = "{\"system\":{\"get_sysinfo\":{}}}";
         } else if (string.equals("on")) {
-            // TODO: See if I can build request without json objects
-            // request = "{\"system\":{\"set_relay_state\":{\"state\":1}}}";
-            JSONObject j = new JSONObject();
-            j.put("state", 1);
-            JSONObject k = new JSONObject();
-            k.put("set_relay_state", j);
-            JSONObject l = new JSONObject();
-            l.put("system", k);
-            request = l.toJSONString();
+            request = "{\"system\":{\"set_relay_state\":{\"state\":1}}}";
         } else if (string.equals("off")) {
-            request = "{'system':{'set_relay_state':{'state':0}}}";
+            request = "{\"system\":{\"set_relay_state\":{\"state\":0}}}";
         }
         // TODO: add state and dynamically build based on state response
 
@@ -144,21 +141,7 @@ public class Lights implements AvaModule {
             conn.reconnect();
         }
 
-        // write binary to file to compare with python encryption binary
-        File f = new File("test.txt");
-        try {
-            FileOutputStream out = new FileOutputStream("test.txt");
-            out.write(encrypt(request));
-            out.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-            return;
-        }
-
-        PrintWriter requestWriter = conn.getRequestWriter();
-        requestWriter.print(encrypt(request));
-        requestWriter.flush();
-        System.out.println("command sent");
+        conn.write(encrypt(request));
     }
 
     @Override
@@ -168,16 +151,11 @@ public class Lights implements AvaModule {
 
         String response = null;
         try {
-            response = conn.getResponseReader().readLine();
+            response = decrypt(conn.read());
         } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
-        }
-        try {
-            response = new String(decrypt(response.getBytes()), "UTF-8");
-        } catch (UnsupportedEncodingException e1) {
-            // TODO Auto-generated catch block
-            e1.printStackTrace();
+            return;
         }
 
         Object obj = null;
@@ -189,6 +167,7 @@ public class Lights implements AvaModule {
         }
 
         JSONObject jsonObject = (JSONObject) obj;
+        System.out.println(jsonObject.toJSONString());
 
         // Breakpoint to determine structure
 
