@@ -66,12 +66,6 @@ public class Lights implements AvaModule {
             key = buffer[i];
         }
 
-        // problem lies in the 'header'. command should follow 4 null bytes.
-        // Currently only follows 3 and some random one
-        // byte[] bufferHeader =
-        // ByteBuffer.allocate(4).putInt(command.length()).array();
-        // ByteBuffer byteBuffer = ByteBuffer.allocate(bufferHeader.length +
-        // buffer.length).put(bufferHeader);
         int headerLength = 4;
         ByteBuffer byteBuffer = ByteBuffer.allocate(buffer.length + headerLength);
         for (int i = 0; i < headerLength; i++) {
@@ -94,29 +88,38 @@ public class Lights implements AvaModule {
         // bArr[i] = b;
         // }
         // }
-        File f = new File("Pre-decrypt.txt");
+        // File f = new File("Pre-decrypt.txt");
+        // try {
+        // PrintWriter out = new PrintWriter(f);
+        // out.print(response);
+        // out.flush();
+        // out.close();
+        // } catch (FileNotFoundException e) {
+        // // TODO Auto-generated catch block
+        // e.printStackTrace();
+        // }
+
         try {
-            PrintWriter out = new PrintWriter(f);
-            out.print(response);
-            out.flush();
-            out.close();
-        } catch (FileNotFoundException e) {
+            response = conn.read();
+        } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
 
+        System.out.println(response);
         int in;
         int key = 171;
         int nextKey;
         StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < response.length(); i++) {
+        for (int i = 4; i < response.length(); i++) {
             in = (int) response.charAt(i);
             nextKey = in;
-            in = in ^ key;
-            key = nextKey;
+            in = key ^ in;
             sb.append((char) in);
+            key = nextKey;
+
         }
-        // System.out.println(sb.toString());
+        System.out.println(sb.toString());
         return "{" + sb.toString().substring(5);
 
     }
@@ -150,13 +153,7 @@ public class Lights implements AvaModule {
         JSONParser parser = new JSONParser();
 
         String response = null;
-        try {
-            response = decrypt(conn.read());
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-            return;
-        }
+        response = decrypt("");
 
         Object obj = null;
         try {
