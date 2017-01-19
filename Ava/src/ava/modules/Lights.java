@@ -34,6 +34,7 @@ public class Lights implements AvaModule {
 
     @Override
     public void execute(String commandString) {
+        
         // command string is not used for this because I only care about turning
         // on/off the lights
         buildRequest("status");
