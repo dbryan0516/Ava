@@ -110,11 +110,14 @@ public class AvaManager {
         // if it is this.NAME then record for a few seconds, send to google STT
         // or other online service and then determine the keyword and module to
         // use.
+
         String command = "";
         if (!command.isEmpty()) {
             Scanner commandScanner = new Scanner(command);
             String keyword = commandScanner.next();
-            moduleMap.get(keyword).execute(command);
+            AvaModule module = moduleMap.get(keyword);
+            module.execute(command);
+            commandScanner.close();
         }
 
         // used for testing purposes

@@ -1,11 +1,9 @@
 package ava.util;
 
-import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
@@ -90,37 +88,9 @@ public class LocalConnection {
         }
     }
 
-    public String readString() throws IOException {
-        // int count = 1;
-        // int size = 1024;
-        // int[] response = new int[size];
-        //
-        // try {
-        // int in;
-        // while ((in = inputStream.read()) != -1) {
-        // //if the response buffer is too small
-        // if (count == size) {
-        // size = size * 2;
-        // int[] dest = new int[size];
-        // System.arraycopy(response, 0, dest, 0, response.length);
-        // response = dest;
-        // }
-        // }
-        // } catch (IOException e) {
-        // e.printStackTrace();
-        // return null;
-        // }
-        // // TODO: log size for analysis
-        // return response;
+    public String readString() {
 
-        BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
-        StringBuilder out = new StringBuilder();
-        String line;
-        while ((line = reader.readLine()) != null) {
-            out.append(line);
-        }
-        reader.close();
-        return out.toString();
+        return readBytes().toString();
     }
 
     public byte[] readBytes() {
