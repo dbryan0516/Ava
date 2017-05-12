@@ -1,19 +1,7 @@
 package ava.modules;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.PrintWriter;
-import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
-
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
-
+import org.json.*;
 import ava.util.AvaModule;
 import ava.util.LocalConnection;
 
@@ -34,9 +22,10 @@ public class Lights implements AvaModule {
 
     @Override
     public void execute(String commandString) {
-        
+
         // command string is not used for this because I only care about turning
         // on/off the lights
+        // TODO: temp hold 192.168.0.2
         buildRequest("status");
         conn = new LocalConnection(target, PORT);
         send();
@@ -79,49 +68,24 @@ public class Lights implements AvaModule {
         return byteBuffer.array();
     }
 
-    private String decrypt(String response) {
-        // TODO: Make sure encrypt works and then Convert code from python
-        // if (bArr != null && bArr.length > 0) {
-        // int key = -85;
-        // for (int i = 0; i < bArr.length; i++) {
-        // byte b = (byte) (key ^ bArr[i]);
-        // key = bArr[i];
-        // bArr[i] = b;
-        // }
-        // }
-        // File f = new File("Pre-decrypt.txt");
-        // try {
-        // PrintWriter out = new PrintWriter(f);
-        // out.print(response);
-        // out.flush();
-        // out.close();
-        // } catch (FileNotFoundException e) {
-        // // TODO Auto-generated catch block
-        // e.printStackTrace();
-        // }
+    private String decrypt(byte[] response) {
 
-        try {
-            response = conn.read();
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-
-        System.out.println(response);
         int in;
         int key = 171;
         int nextKey;
         StringBuilder sb = new StringBuilder();
-        for (int i = 4; i < response.length(); i++) {
-            in = (int) response.charAt(i);
+        for (int i = 4; i < response.length; i++) {
+            in = response[i];
             nextKey = in;
             in = key ^ in;
             sb.append((char) in);
             key = nextKey;
 
         }
-        System.out.println(sb.toString());
-        return "{" + sb.toString().substring(5);
+
+        System.out.println("{" + sb.toString().substring(1, sb.length() - 1));
+        System.out.println(sb.length());
+        return "{" + sb.toString().substring(1, sb.length() - 1);
 
     }
 
@@ -141,33 +105,53 @@ public class Lights implements AvaModule {
     @Override
     public void send() {
         if (conn.isClosed()) {
-            System.out.println("reconnecting");
+            System.out.println("Reconnecting to HS100");
             conn.reconnect();
         }
 
-        conn.write(encrypt(request));
+        conn.writeBytes(encrypt(request));
     }
 
     @Override
     public void handleResponse() {
 
-        JSONParser parser = new JSONParser();
+        // get the encrypted response
+        byte[] enResponse;
+        enResponse = conn.readBytes();
+        // conn.close();
+        // decrypt it
+        String response;
+        response = decrypt(enResponse);
 
-        String response = null;
-        response = decrypt("");
+        // turn to JSON object; get status
 
-        Object obj = null;
+        int relayState = -1;
         try {
-            obj = parser.parse(response);
-        } catch (ParseException e) {
-            // TODO Auto-generated catch block
+            JSONObject jsonObject = new JSONObject(response);
+            JSONObject jsonObject2 = ((JSONObject) jsonObject.getJSONObject("system").getJSONObject("get_sysinfo"));
+            relayState = (int) jsonObject2.get("relay_state");
+        } catch (JSONException e) {
             e.printStackTrace();
         }
 
-        JSONObject jsonObject = (JSONObject) obj;
-        System.out.println(jsonObject.toJSONString());
+        if (relayState == 0) {
+            // switch is off; lets turn it on
+            buildRequest("on");
+            System.out.println(request);
+        } else if (relayState == 1) {
+            // switch is on; lets turn it off
+            buildRequest("off");
+            System.out.println(request);
+        } else {
+            // error
+            System.out.println("Unable to get relay state");
+        }
 
-        // Breakpoint to determine structure
+        conn.reconnect();
+        // send command to change relay state
+        send();
+
+        System.out.println("message sent");
 
     }
 

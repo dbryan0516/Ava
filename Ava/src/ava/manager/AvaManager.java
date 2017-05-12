@@ -99,7 +99,7 @@ public class AvaManager {
      * actual command
      */
     public void listen() {
-        
+
         // TODO: import sphinx or other onboard STT and set it to react to key
         // word
         // maybe pass them in from the executable

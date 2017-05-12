@@ -1,12 +1,15 @@
 package ava.util;
 
 import java.io.BufferedReader;
+import java.io.DataInputStream;
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.Arrays;
 
 /**
  * Abstract class for connecting to devices on your local network
@@ -70,13 +73,14 @@ public class LocalConnection {
         return socket.isClosed();
     }
 
-    public boolean write(byte[] request) {
+    public boolean writeBytes(byte[] request) {
         if (isClosed()) {
             reconnect();
         }
 
         try {
             outputStream.write(request);
+            System.out.println("here2");
             outputStream.flush();
             return true;
         } catch (IOException e) {
@@ -86,7 +90,7 @@ public class LocalConnection {
         }
     }
 
-    public String read() throws IOException {
+    public String readString() throws IOException {
         // int count = 1;
         // int size = 1024;
         // int[] response = new int[size];
@@ -117,6 +121,33 @@ public class LocalConnection {
         }
         reader.close();
         return out.toString();
+    }
+
+    public byte[] readBytes() {
+        DataInputStream input = new DataInputStream(inputStream);
+        byte[] bArray = new byte[1024];
+        int i = 0;
+        try {
+            while (true) {
+                bArray[i] = input.readByte();
+                i++;
+                // if byte array is full, double the length
+                if (i > bArray.length) {
+                    bArray = Arrays.copyOf(bArray, bArray.length);
+                }
+            }
+        } catch (EOFException e) {
+            // it reached EOF
+            // copy into smaller array
+            bArray = Arrays.copyOf(bArray, i + 1);
+            System.out.println("here");
+            return bArray;
+        } catch (IOException f) {
+            f.printStackTrace();
+
+        }
+
+        return null;
     }
 
     /**
