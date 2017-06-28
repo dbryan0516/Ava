@@ -4,6 +4,8 @@ import static org.junit.Assert.*;
 
 import org.junit.Test;
 
+import ava.modules.Lights;
+
 public class LightsTest {
 
     @Test
